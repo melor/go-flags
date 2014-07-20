@@ -173,12 +173,18 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			def = strings.Join(defs, ", ")
 		}
 
+		var envDef string
+		if option.EnvDefaultKey != "" {
+			envDef = fmt.Sprintf(" [%s]", option.EnvDefaultKey)
+		}
+
 		var desc string
 
 		if def != "" {
-			desc = fmt.Sprintf("%s (%v)", option.Description, def)
+			desc = fmt.Sprintf("%s (%v)%s", option.Description, def,
+				envDef)
 		} else {
-			desc = option.Description
+			desc = option.Description + envDef
 		}
 
 		writer.WriteString(wrapText(desc,

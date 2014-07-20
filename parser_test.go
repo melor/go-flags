@@ -1,6 +1,7 @@
 package flags
 
 import (
+	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -82,6 +83,103 @@ func TestDefaults(t *testing.T) {
 	for _, test := range tests {
 		var opts defaultOptions
 
+		_, err := ParseArgs(&opts, test.args)
+		if err != nil {
+			t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
+		}
+
+		if opts.Slice == nil {
+			opts.Slice = []int{}
+		}
+
+		if !reflect.DeepEqual(opts, test.expected) {
+			t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
+		}
+	}
+}
+
+type envDefaultOptions struct {
+	Int   int            `long:"i" default:"1" env:"TEST_I"`
+	Time  time.Duration  `long:"t" default:"1m" env:"TEST_T"`
+	Map   map[string]int `long:"m" default:"a:1" env:"TEST_M" env-delim:";"`
+	Slice []int          `long:"s" default:"1" default:"2" env:"TEST_S"  env-delim:","`
+}
+
+func TestEnvDefaults(t *testing.T) {
+	var tests = []struct {
+		msg      string
+		args     []string
+		expected envDefaultOptions
+		env      map[string]string
+	}{
+		{
+			msg:  "no arguments, no env, expecting default values",
+			args: []string{},
+			expected: envDefaultOptions{
+				Int:   1,
+				Time:  time.Minute,
+				Map:   map[string]int{"a": 1},
+				Slice: []int{1, 2},
+			},
+		},
+		{
+			msg:  "no arguments, env defaults, expecting env default values",
+			args: []string{},
+			expected: envDefaultOptions{
+				Int:   2,
+				Time:  2 * time.Minute,
+				Map:   map[string]int{"a": 2, "b": 3},
+				Slice: []int{4, 5, 6},
+			},
+			env: map[string]string{
+				"TEST_I": "2",
+				"TEST_T": "2m",
+				"TEST_M": "a:2;b:3",
+				"TEST_S": "4,5,6",
+			},
+		},
+		{
+			msg:  "non-zero value arguments, expecting overwritten arguments",
+			args: []string{"--i=3", "--t=3ms", "--m=c:3", "--s=3"},
+			expected: envDefaultOptions{
+				Int:   3,
+				Time:  3 * time.Millisecond,
+				Map:   map[string]int{"c": 3},
+				Slice: []int{3},
+			},
+			env: map[string]string{
+				"TEST_I": "2",
+				"TEST_T": "2m",
+				"TEST_M": "a:2;b:3",
+				"TEST_S": "4,5,6",
+			},
+		},
+		{
+			msg:  "zero value arguments, expecting overwritten arguments",
+			args: []string{"--i=0", "--t=0ms", "--m=:0", "--s=0"},
+			expected: envDefaultOptions{
+				Int:   0,
+				Time:  0,
+				Map:   map[string]int{"": 0},
+				Slice: []int{0},
+			},
+			env: map[string]string{
+				"TEST_I": "2",
+				"TEST_T": "2m",
+				"TEST_M": "a:2;b:3",
+				"TEST_S": "4,5,6",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		var opts envDefaultOptions
+		// there is no support for unsetting an env var in go, so we
+		// have to clear the entire env
+		os.Clearenv()
+		for envKey, envValue := range test.env {
+			os.Setenv(envKey, envValue)
+		}
 		_, err := ParseArgs(&opts, test.args)
 		if err != nil {
 			t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
