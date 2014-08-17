@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"runtime"
 	"strings"
 	"unicode/utf8"
 )
@@ -175,7 +176,13 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 		var envDef string
 		if option.EnvDefaultKey != "" {
-			envDef = fmt.Sprintf(" [%s]", option.EnvDefaultKey)
+			var envPrintable string
+			if runtime.GOOS == "windows" {
+				envPrintable = "%" + option.EnvDefaultKey + "%"
+			} else {
+				envPrintable = "$" + option.EnvDefaultKey
+			}
+			envDef = fmt.Sprintf(" [%s]", envPrintable)
 		}
 
 		var desc string

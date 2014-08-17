@@ -118,8 +118,8 @@ Application Options:
       /default:            Test default value (Some value)
       /default-array:      Test default array value (Some value, Another value)
       /default-map:        Testdefault map value (some:value, another:value)
-      /env-default1:       Test env-default1 value (Some value) [ENV_DEFAULT]
-      /env-default2:       Test env-default2 value [ENV_DEFAULT]
+      /env-default1:       Test env-default1 value (Some value) [%ENV_DEFAULT%]
+      /env-default2:       Test env-default2 value [%ENV_DEFAULT%]
 
 Other Options:
   /s:                      A slice of strings (some, value)
@@ -154,8 +154,8 @@ Application Options:
       --default=           Test default value (Some value)
       --default-array=     Test default array value (Some value, Another value)
       --default-map=       Testdefault map value (some:value, another:value)
-      --env-default1=      Test env-default1 value (Some value) [ENV_DEFAULT]
-      --env-default2=      Test env-default2 value [ENV_DEFAULT]
+      --env-default1=      Test env-default1 value (Some value) [$ENV_DEFAULT]
+      --env-default2=      Test env-default2 value [$ENV_DEFAULT]
 
 Other Options:
   -s=                      A slice of strings (some, value)
