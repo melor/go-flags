@@ -83,12 +83,11 @@ type helpOptions struct {
 }
 
 func TestHelp(t *testing.T) {
-	var opts helpOptions
-
 	oldEnv := EnvSnapshot()
 	defer oldEnv.Restore()
 	os.Setenv("ENV_DEFAULT", "env-def")
 
+	var opts helpOptions
 	p := NewNamedParser("TestHelp", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 
@@ -194,8 +193,11 @@ Available commands:
 }
 
 func TestMan(t *testing.T) {
-	var opts helpOptions
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
 	os.Setenv("ENV_DEFAULT", "env-def")
+
+	var opts helpOptions
 	p := NewNamedParser("TestMan", HelpFlag)
 	p.ShortDescription = "Test manpage generation"
 	p.LongDescription = "This is a somewhat `longer' description of what this does"
@@ -289,9 +291,11 @@ type helpCommandNoOptions struct {
 }
 
 func TestHelpCommand(t *testing.T) {
-	var opts helpCommandNoOptions
-
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
 	os.Setenv("ENV_DEFAULT", "env-def")
+
+	var opts helpCommandNoOptions
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 

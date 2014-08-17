@@ -9,6 +9,10 @@ import (
 )
 
 func TestWriteIni(t *testing.T) {
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
+	os.Setenv("ENV_DEFAULT", "env-def")
+
 	var tests = []struct {
 		args     []string
 		options  IniOptions
