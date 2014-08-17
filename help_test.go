@@ -85,7 +85,10 @@ type helpOptions struct {
 func TestHelp(t *testing.T) {
 	var opts helpOptions
 
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
 	os.Setenv("ENV_DEFAULT", "env-def")
+
 	p := NewNamedParser("TestHelp", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 

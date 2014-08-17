@@ -3,6 +3,7 @@ package flags
 import (
 	"os"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -98,6 +99,31 @@ func TestDefaults(t *testing.T) {
 	}
 }
 
+// envRestorer keeps a copy of a set of env variables and can restore the env from them
+type envRestorer struct {
+	env map[string]string
+}
+
+func (r *envRestorer) Restore() {
+	os.Clearenv()
+	for k, v := range r.env {
+		os.Setenv(k, v)
+	}
+}
+
+// EnvSnapshot returns a snapshot of the currently set env variables
+func EnvSnapshot() *envRestorer {
+	r := envRestorer{make(map[string]string)}
+	for _, kv := range os.Environ() {
+		parts := strings.SplitN(kv, "=", 2)
+		if len(parts) != 2 {
+			panic("got a weird env variable: " + kv)
+		}
+		r.env[parts[0]] = parts[1]
+	}
+	return &r
+}
+
 type envDefaultOptions struct {
 	Int   int            `long:"i" default:"1" env:"TEST_I"`
 	Time  time.Duration  `long:"t" default:"1m" env:"TEST_T"`
@@ -172,11 +198,12 @@ func TestEnvDefaults(t *testing.T) {
 		},
 	}
 
+	oldEnv := EnvSnapshot()
+	defer oldEnv.Restore()
+
 	for _, test := range tests {
 		var opts envDefaultOptions
-		// there is no support for unsetting an env var in go, so we
-		// have to clear the entire env
-		os.Clearenv()
+		oldEnv.Restore()
 		for envKey, envValue := range test.env {
 			os.Setenv(envKey, envValue)
 		}
